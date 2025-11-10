@@ -1,0 +1,13 @@
+{
+  "title": "Задача: Первый вывод",
+  "statement": "Выведи строку: Hello, Python!",
+  "template": "print( ... )",
+  "check": {
+    "type": "stdout_equals",
+    "expected": "Hello, Python!"
+  },
+  "hints": [
+    "Строки в кавычках.",
+    "print выводит в консоль."
+  ]
+}
