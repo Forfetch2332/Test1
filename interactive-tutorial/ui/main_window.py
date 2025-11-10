@@ -1,4 +1,6 @@
 import os
+from typing import Any, Dict, List, Optional, Tuple
+
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QListWidget, QPushButton, QLabel, QMessageBox
@@ -10,8 +12,15 @@ import resource_helper as rh
 from content_validator import validate_lesson, validate_task
 
 
+JSONDict = Dict[str, Any]
+
+
 class MainWindow(QMainWindow):
-    def __init__(self):
+    topics: List[JSONDict]
+    current_task_path: Optional[str]
+    _task_windows: List[QWidget]
+
+    def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Interactive Tutorial")
         self.resize(1000, 700)
@@ -36,9 +45,12 @@ class MainWindow(QMainWindow):
         self.lesson_view = LessonView()
         layout.addWidget(self.lesson_view, 3)
 
+        # состояние
         self.current_task_path = None
         self._task_windows = []
+        self.topics = []
 
+        # загрузка topics
         topics_data, err = rh.load_json_resource(os.path.join("content", "topics.json"))
         if err:
             self._error_dialog("Ошибка загрузки тем", err)
@@ -53,7 +65,7 @@ class MainWindow(QMainWindow):
         if self.topics:
             self.topics_list.setCurrentRow(0)
 
-    def on_topic_selected(self, idx: int):
+    def on_topic_selected(self, idx: int) -> None:
         if idx < 0 or idx >= len(self.topics):
             return
 
@@ -82,7 +94,7 @@ class MainWindow(QMainWindow):
         self.lesson_view.load_lesson(data)
         self.current_task_path = topic.get("task")
 
-    def open_task(self):
+    def open_task(self) -> None:
         if not getattr(self, "current_task_path", None):
             self._info_dialog("Задача недоступна", "Для этой темы задача не предусмотрена")
             return
@@ -99,9 +111,9 @@ class MainWindow(QMainWindow):
             self._error_dialog("Ошибка валидации задачи", verr)
             return
 
-        tv = TaskView(task)
+        tv: TaskView = TaskView(task)
 
-        # Сохраняем ссылку, чтобы окно не было уничтожено сборщиком мусора
+        # сохраняем ссылку, чтобы окно не было удалено сборщиком мусора
         self._task_windows.append(tv)
 
         tv.setWindowFlag(Qt.Window, True)
@@ -110,8 +122,8 @@ class MainWindow(QMainWindow):
         tv.raise_()
         tv.activateWindow()
 
-    def _error_dialog(self, title: str, msg: str):
+    def _error_dialog(self, title: str, msg: str) -> None:
         QMessageBox.critical(self, title, msg)
 
-    def _info_dialog(self, title: str, msg: str):
+    def _info_dialog(self, title: str, msg: str) -> None:
         QMessageBox.information(self, title, msg)
