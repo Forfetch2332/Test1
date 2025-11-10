@@ -1,0 +1,66 @@
+interactive-tutorial/
+├─ app.py
+├─ resource_helper.py
+├─ requirements.txt
+├─ README.md
+├─ assets/
+│  ├─ icons/
+│  └─ styles.qss
+├─ ui/
+│  ├─ main_window.py
+│  ├─ lesson_view.py
+│  ├─ task_view.py
+│  └─ syntax_highlighter.py
+├─ user_data/
+│  ├─ progress.json
+│  └─ logs/
+│     └─ app.log
+└─ content/
+   ├─ topics.json
+   ├─ lessons/
+   │  ├─ 01_intro.json                    # Введение
+   │  ├─ 02_install_and_run.json          # Установка и запуск (интерпретатор, IDE)
+   │  ├─ 03_syntax_basics.json            # Базовый синтаксис: выражения, операторы
+   │  ├─ 04_variables_and_types.json      # Переменные и типы данных
+   │  ├─ 05_numbers_and_operations.json   # Числа и операции
+   │  ├─ 06_strings.json                  # Строки и методы
+   │  ├─ 07_lists.json                    # Списки
+   │  ├─ 08_tuples.json                   # Кортежи
+   │  ├─ 09_dicts.json                    # Словари
+   │  ├─ 10_sets.json                     # Множества
+   │  ├─ 11_conditionals.json             # Условные операторы: if/elif/else
+   │  ├─ 12_loops.json                    # Циклы: for/while, break/continue
+   │  ├─ 13_functions.json                # Функции: аргументы, значения по умолчанию, return
+   │  ├─ 14_modules_and_imports.json      # Модули и импорты (stdlib)
+   │  ├─ 15_files_io.json                 # Работа с файлами (чтение/запись, контекстные менеджеры)
+   │  ├─ 16_exceptions.json               # Исключения: try/except/else/finally, raise
+   │  ├─ 17_comprehensions.json           # Генераторы списков/слов/множеств
+   │  ├─ 18_iterators_and_generators.json # Итераторы, генераторы, itertools
+   │  ├─ 19_decorators.json               # Декораторы: функции высшего порядка
+   │  ├─ 20_oop_basics.json               # ООП: классы, объекты, наследование
+   │  ├─ 21_testing.json                  # Тестирование: unittest/pytest базовый обзор
+   │  ├─ 22_cli_basics.json               # Простые CLI-приложения (argparse)
+   │  ├─ 23_json_csv_xml.json             # Форматы данных: JSON/CSV/XML
+   │  ├─ 24_virtualenv_and_packages.json  # Виртуальные окружения и зависимости (pip, venv)
+   │  ├─ 25_project_planning.json         # Планирование мини-проекта
+   │  └─ 26_final_project.json            # Итоговый мини‑проект (например, «Угадай число»/CLI‑утилита)
+   └─ tasks/
+      ├─ 01_intro_task.json
+      ├─ 04_variables_task.json
+      ├─ 06_strings_task.json
+      ├─ 07_lists_task.json
+      ├─ 09_dicts_task.json
+      ├─ 11_conditionals_task.json
+      ├─ 12_loops_task.json
+      ├─ 13_functions_task.json
+      ├─ 15_files_io_task.json
+      ├─ 16_exceptions_task.json
+      ├─ 17_comprehensions_task.json
+      ├─ 18_generators_task.json
+      ├─ 19_decorators_task.json
+      ├─ 20_oop_basics_task.json
+      ├─ 21_testing_task.json
+      ├─ 22_cli_basics_task.json
+      ├─ 23_json_csv_xml_task.json
+      ├─ 24_virtualenv_and_packages_task.json
+      └─ 26_final_project_task.json
