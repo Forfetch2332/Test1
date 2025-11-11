@@ -38,7 +38,7 @@ interactive-tutorial/
    │  ├─ 18_iterators_and_generators.json # Итераторы, генераторы, itertools
    │  ├─ 19_decorators.json               # Декораторы: функции высшего порядка
    │  ├─ 20_oop_basics.json               # ООП: классы, объекты, наследование
-   │  ├─ 21_testing.json                  # Тестирование: unittest/pytest базовый обзор
+   │  ├─ 21_testing.json                  # Тестирование: unittest/pytest базовый обзор ВЫЗЫВАЕТ СБОЙ РАЗОБРАТСЯ
    │  ├─ 22_cli_basics.json               # Простые CLI-приложения (argparse)
    │  ├─ 23_json_csv_xml.json             # Форматы данных: JSON/CSV/XML
    │  ├─ 24_virtualenv_and_packages.json  # Виртуальные окружения и зависимости (pip, venv)
