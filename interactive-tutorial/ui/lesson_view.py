@@ -1,85 +1,46 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPlainTextEdit, QPushButton, QTextEdit
+    QWidget, QVBoxLayout, QLabel, QPlainTextEdit, QPushButton, QSizePolicy
 )
 import io, contextlib, traceback
 import resource_helper as rh
 from typing import Any, Dict, List
 
-
-def _normalize_hints(raw) -> List[str]:
-    """Привести raw к списку непустых строк."""
-    if not isinstance(raw, list):
-        return []
-    out: List[str] = []
-    for i, item in enumerate(raw):
-        try:
-            s = "" if item is None else str(item)
-        except Exception:
-            rh.log(f"LessonView: could not stringify hint[{i}] -> {item!r}")
-            continue
-        s = s.strip()
-        if s:
-            out.append(s)
-    return out
-
-
-def _extract_hints_from_lesson(data: Dict[str, Any]) -> List[str]:
-    """
-    Извлечь подсказки из lesson-объекта.
-    Поддерживаем два варианта:
-      - поле "hints": список строк
-      - поле "notes": список объектов {"hint": "..."}
-    Возвращаем список строк (возможен пустой список).
-    """
-    if not isinstance(data, dict):
-        return []
-
-    # Прямые hints (если это список строк)
-    raw_hints = data.get("hints", [])
-    if isinstance(raw_hints, list) and any(isinstance(x, str) for x in raw_hints):
-        return _normalize_hints(raw_hints)
-
-    # notes -> [{"hint": "..."}]
-    notes = data.get("notes", [])
-    if isinstance(notes, list):
-        extracted: List[str] = []
-        for i, note in enumerate(notes):
-            if not isinstance(note, dict):
-                continue
-            h = note.get("hint")
-            if isinstance(h, str) and h.strip():
-                extracted.append(h.strip())
-        return extracted
-
-    return []
+from ui.hints_renderer import HintsRenderer
+from ui.hints_utils import extract_hints_from_lesson
 
 
 class LessonView(QWidget):
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(8)
 
         self.title = QLabel("Урок")
         self.title.setStyleSheet("font-weight: bold; font-size: 18px;")
 
         self.text = QPlainTextEdit()
         self.text.setReadOnly(True)
+        self.text.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.text.setMinimumHeight(200)
 
-        # Подсказки
-        self.hints_label = QLabel("Подсказки")
-        self.hints = QTextEdit()
-        self.hints.setReadOnly(True)
-        self.hints.setPlaceholderText("Подсказки появятся здесь, если они есть")
+        # Встраиваем компактный HintsRenderer
+        self.hints_renderer = HintsRenderer()
+        # делаем renderer предпочтительным, но не доминирующим
+        self.hints_renderer.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
 
         self.code = QPlainTextEdit()
+        self.code.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
         self.run_btn = QPushButton("Запустить")
         self.output = QPlainTextEdit()
         self.output.setReadOnly(True)
+        self.output.setMinimumHeight(120)
+        self.output.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         layout.addWidget(self.title)
         layout.addWidget(self.text)
-        layout.addWidget(self.hints_label)
-        layout.addWidget(self.hints)
+        layout.addWidget(self.hints_renderer)
         layout.addWidget(QLabel("Пример кода"))
         layout.addWidget(self.code)
         layout.addWidget(self.run_btn)
@@ -88,16 +49,12 @@ class LessonView(QWidget):
 
         self.run_btn.clicked.connect(self.run_code)
 
-        # По умолчанию скрываем секцию подсказок
-        self.hints_label.hide()
-        self.hints.hide()
-
     def load_lesson(self, lesson: Dict[str, Any]):
-        """
-        Ожидает lesson как словарь (parsed JSON).
-        Извлекает и отображает подсказки (hints или notes).
-        """
-        rh.log(f"LessonView.load_lesson called; keys={list(lesson.keys())}")
+        try:
+            rh.log(f"LessonView.load_lesson called; keys={list(lesson.keys())}")
+        except Exception:
+            rh.log("LessonView.load_lesson called")
+
         self.title.setText(lesson.get("title", "Урок"))
 
         body = lesson.get("text", [])
@@ -106,29 +63,18 @@ class LessonView(QWidget):
         else:
             self.text.setPlainText(str(body))
 
-        self.code.setPlainText(lesson.get("example", ""))
+        self.code.setPlainText(lesson.get("example", "") or "")
 
-        hints = _extract_hints_from_lesson(lesson)
-        if hints:
-            # отображаем по одной строке на строку, как в TaskView
-            self.hints.setPlainText("\n".join(hints))
-            self.hints_label.show()
-            self.hints.show()
-            rh.log(f"LessonView: displayed {len(hints)} hints")
-        else:
-            self.hints.clear()
-            self.hints_label.hide()
-            self.hints.hide()
-            rh.log("LessonView: no hints to display")
+        # извлекаем подсказки и передаём в renderer
+        hints = extract_hints_from_lesson(lesson)
+        self.hints_renderer.show_hints(hints)
 
     def show_error(self, message: str):
         self.title.setText("Ошибка урока")
         self.text.setPlainText(message)
         self.code.clear()
         self.output.clear()
-        self.hints.clear()
-        self.hints_label.hide()
-        self.hints.hide()
+        self.hints_renderer.clear()
 
     def run_code(self):
         code = self.code.toPlainText()

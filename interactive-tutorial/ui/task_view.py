@@ -1,71 +1,67 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPlainTextEdit, QPushButton, QTextEdit
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPlainTextEdit, QPushButton
 import io, contextlib, traceback
+import resource_helper as rh
+from typing import Any, Dict, List
+
+from ui.hints_renderer import HintsRenderer
+from ui.hints_utils import normalize_hints
+
 
 class TaskView(QWidget):
-    def __init__(self, task: dict):
+    def __init__(self, task: Dict[str, Any]):
         super().__init__()
-        self.task = task
         self.setWindowTitle(task.get("title", "Задача"))
-
         layout = QVBoxLayout(self)
 
-        self.statement = QLabel(task.get("statement", ""))
-        self.code = QPlainTextEdit(task.get("template", ""))
-        self.check_btn = QPushButton("Проверить")
-        self.result = QLabel(" ")
+        self.title = QLabel(task.get("title", "Задача"))
+        self.title.setStyleSheet("font-weight: bold; font-size: 16px;")
 
-        # Виджет для подсказок
-        self.hints_label = QLabel("Подсказки")
-        self.hints = QTextEdit()
-        self.hints.setReadOnly(True)
-        self.hints.setPlaceholderText("Подсказки появятся здесь, если они есть")
+        self.statement = QPlainTextEdit()
+        self.statement.setReadOnly(True)
+        self.statement.setPlainText(task.get("statement", ""))
 
+        # HintsRenderer — одинаковый формат показа подсказок
+        self.hints_renderer = HintsRenderer()
+
+        self.code_input = QPlainTextEdit()
+        self.run_btn = QPushButton("Запустить")
+        self.output = QPlainTextEdit()
+        self.output.setReadOnly(True)
+
+        layout.addWidget(self.title)
         layout.addWidget(self.statement)
-        layout.addWidget(self.hints_label)
-        layout.addWidget(self.hints)
-        layout.addWidget(self.code)
-        layout.addWidget(self.check_btn)
-        layout.addWidget(self.result)
+        layout.addWidget(self.hints_renderer)
+        layout.addWidget(QLabel("Ввод кода"))
+        layout.addWidget(self.code_input)
+        layout.addWidget(self.run_btn)
+        layout.addWidget(QLabel("Вывод"))
+        layout.addWidget(self.output)
 
-        self.check_btn.clicked.connect(self.check_solution)
+        self.run_btn.clicked.connect(self.run_code)
 
-        # Загрузить подсказки при инициализации
-        self.load_hints(self.task)
+        # Подсказки: ожидаем что task["hints"] — список строк или элементов
+        raw_hints = task.get("hints", [])
+        hints = normalize_hints(raw_hints)
+        self.hints_renderer.show_hints(hints)
 
-    def load_hints(self, task: dict):
-        hints = task.get("hints", [])
-        if isinstance(hints, list) and hints:
-            # Отображаем каждую подсказку на новой строке
-            self.hints.setPlainText("\n".join(hints))
-            self.hints_label.show()
-            self.hints.show()
-        else:
-            # Если подсказок нет, скрыть секцию
-            self.hints.clear()
-            self.hints_label.hide()
-            self.hints.hide()
-
-    def check_solution(self):
-        code = self.code.toPlainText()
-        check = self.task.get("check", {})
+    def run_code(self):
+        code = self.code_input.toPlainText()
         buf = io.StringIO()
         err_buf = io.StringIO()
         ns = {}
-
         try:
             with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(err_buf):
                 exec(code, ns)
         except Exception:
             tb = traceback.format_exc()
-            self.result.setText(f"Ошибка:\n{tb}")
+            self.output.setPlainText(f"Ошибка:\n{tb}")
             return
 
-        if check.get("type") == "stdout_equals":
-            expected = check.get("expected", "")
-            got = buf.getvalue().strip()
-            if got == expected:
-                self.result.setText("Верно!")
-            else:
-                self.result.setText(f"Неверно. Ожидалось: {expected}, получено: {got}")
-        else:
-            self.result.setText("Неизвестный тип проверки")
+        out_text = buf.getvalue()
+        err_text = err_buf.getvalue()
+        combined = out_text
+        if err_text:
+            if combined:
+                combined += "\n"
+            combined += "STDERR:\n" + err_text
+        self.output.setPlainText(combined)
