@@ -51,8 +51,9 @@ class MainWindow(QMainWindow):
         self._task_windows = []
         self.topics = []
 
-        # загрузка topics
-        topics_data, err = rh.load_json_resource(os.path.join("content", "topics.json"))
+        # загрузка topics.json через resource_path
+        topics_file = rh.resource_path(os.path.join("content", "topics.json"))
+        topics_data, err = rh.load_json_resource(topics_file)
         if err:
             self._error_dialog("Ошибка загрузки тем", err)
             self.topics = []
@@ -78,8 +79,9 @@ class MainWindow(QMainWindow):
             self.current_task_path = None
             return
 
-        rel_lesson = os.path.join("content", lesson_rel)
-        data, err = rh.load_json_resource(rel_lesson)
+        # путь к уроку через resource_path
+        lesson_file = rh.resource_path(os.path.join("content", lesson_rel))
+        data, err = rh.load_json_resource(lesson_file)
         if err:
             self.lesson_view.show_error(f"Ошибка загрузки урока:\n{err}")
             self.current_task_path = None
@@ -92,7 +94,7 @@ class MainWindow(QMainWindow):
             self.current_task_path = None
             return
 
-        # Подготовка: извлекаем подсказки из lesson (hints или notes) и передаём в LessonView
+        # извлекаем подсказки и передаём в LessonView
         hints = extract_hints_from_lesson(data)
         data_copy = dict(data)
         data_copy["hints"] = hints
@@ -105,15 +107,16 @@ class MainWindow(QMainWindow):
             self._info_dialog("Задача недоступна", "Для этой темы задача не предусмотрена")
             return
 
-        rel = os.path.join("content", self.current_task_path)
-        task, err = rh.load_json_resource(rel)
+        # путь к задаче через resource_path
+        task_file = rh.resource_path(os.path.join("content", self.current_task_path))
+        task, err = rh.load_json_resource(task_file)
         if err:
             self._error_dialog("Ошибка загрузки задачи", err)
             return
 
         ok, verr = validate_task(task)
         if not ok:
-            rh.log(f"Task validation error ({rel}): {verr}")
+            rh.log(f"Task validation error ({task_file}): {verr}")
             self._error_dialog("Ошибка валидации задачи", verr)
             return
 

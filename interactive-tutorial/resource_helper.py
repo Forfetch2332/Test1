@@ -1,73 +1,45 @@
-import os, sys, json, errno
-from datetime import datetime
-from typing import Any, Dict, Tuple
+import os
+import sys
+import json
+import traceback
 
-APP_NAME = "interactive_tutorial"
+# ---------- Логирование ----------
+def log(msg: str) -> None:
+    """Простое логирование в консоль."""
+    print(f"[LOG] {msg}")
 
-def get_user_data_dir():
-    if sys.platform.startswith('win'):
-        base = os.environ.get("APPDATA", os.path.expanduser("~"))
-    elif sys.platform == 'darwin':
-        base = os.path.expanduser("~/Library/Application Support")
-    else:
-        base = os.environ.get("XDG_DATE_HOME", os.path.expanduser("~/.local/share"))
-    return os.path.join(base, APP_NAME)
-
-def ensure_dir(path):
-    try:
-        os.makedirs(path, exist_ok=True)
-    except Exception:
-        try:
-            os.makedirs(path)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-
-def ensure_app_dirs():
-    base = get_user_data_dir()
-    logs = os.path.join(base, "logs")
-    ensure_dir(base); ensure_dir(logs)
-    return {"base": base, "logs": logs}
-
-def log(msg):
-    try:
-        dirs = ensure_app_dirs()
-        lp = os.path.join(dirs["logs"], "app.log")
-        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(lp, "a", encoding="utf-8") as f:
-            f.write(f"[{ts}] {msg}\n")
-    except Exception:
-        pass
-
-def resourse_path(rel: str) -> str:
+# ---------- Работа с ресурсами ----------
+def resource_path(rel_path: str) -> str:
     """
-    Возвращает абсолютный путь к ресурсу относительно корня проекта или PyInstaller-пакета
+    Возвращает корректный путь к ресурсу:
+    - при обычном запуске: текущая рабочая директория
+    - внутри exe (PyInstaller): временная папка _MEIPASS
     """
-    if getattr(sys, "frozen", False):
-        base = sys.MEIPASS # type: ignore
-    else:
-        base = os.path.abspath(".")
-    return os.path.join(base, rel)
+    base = getattr(sys, "_MEIPASS", os.path.abspath("."))
+    return os.path.join(base, rel_path)
 
-def load_json_resource(rel_path: str) -> Tuple[Dict[str, Any] | None, str | None]:
+def load_json_resource(path: str):
     """
-    Загружает JSON из относительного пути (content/lessons/01_intro.json).
-    Возвращает (data, error). При ошибке data=None, error=msg.
+    Загружает JSON-файл по указанному пути.
+    Возвращает (data, error), где error = None при успехе.
     """
-    path = resourse_path(rel_path)
     try:
         with open(path, "r", encoding="utf-8") as f:
-            return json.load(f), None
-    except FileNotFoundError:
-        msg = f"File not found: {rel_path}"
-        log(msg)
-        return None, msg
-    except json.JSONDecodeError as e:
-        msg = f"JSON decode error in {rel_path}: {e}"
-        log(msg)
-        return None, msg
+            data = json.load(f)
+        return data, None
     except Exception as e:
-        msg = f"Error reading {rel_path}: {e}"
-        log(msg)
-        return None, msg
+        tb = traceback.format_exc()
+        log(f"Ошибка загрузки JSON {path}: {e}\n{tb}")
+        return None, str(e)
 
+# ---------- Настройки (для сохранения прогресса подсказок и др.) ----------
+_settings_cache = {}
+
+def get_setting(key: str):
+    """Получить сохранённое значение настройки (из памяти)."""
+    return _settings_cache.get(key)
+
+def set_setting(key: str, value):
+    """Сохранить значение настройки (в памяти)."""
+    _settings_cache[key] = value
+    log(f"Setting saved: {key} = {value}")
