@@ -1,0 +1,15 @@
+{
+  "title": "Задача: Файлы — запись и чтение",
+  "statement": "Создай файл notes.txt, запиши в него строку Hello, file!, затем прочитай файл и выведи содержимое. Ожидаемый вывод: Hello, file!",
+  "template": "with open('notes.txt', 'w', encoding='utf-8') as f:\n    f.write( ... )\n\nwith open('notes.txt', 'r', encoding='utf-8') as f:\n    text = f.read()\n\nprint( ... )",
+  "check": {
+    "type": "stdout_equals",
+    "expected": "Hello, file!"
+  },
+  "hints": [
+    "open(path, mode) открывает файл: 'w' — запись, 'r' — чтение.",
+    "Метод write записывает строку в файл.",
+    "Метод read читает всё содержимое файла в строку.",
+    "print выводит прочитанную строку."
+  ]
+}

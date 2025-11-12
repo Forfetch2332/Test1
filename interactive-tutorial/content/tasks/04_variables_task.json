@@ -1,0 +1,14 @@
+{
+  "title": "Задача: Переменные",
+  "statement": "Создай переменную message и присвой ей строку Hello, Variables! Затем выведи её с помощью print.",
+  "template": "message = ...\nprint( ... )",
+  "check": {
+    "type": "stdout_equals",
+    "expected": "Hello, Variables!"
+  },
+  "hints": [
+    "Переменные создаются через имя = значение.",
+    "Строки заключаются в кавычки.",
+    "print выводит значение переменной."
+  ]
+}

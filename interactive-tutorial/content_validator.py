@@ -1,4 +1,3 @@
-# content_validator.py
 from typing import Any, Dict, Tuple
 
 def _err(msg: str) -> Tuple[bool, str]:
@@ -14,7 +13,7 @@ def validate_lesson(data: Dict[str, Any]) -> Tuple[bool, str | None]:
     if "example" not in data or not isinstance(data["example"], str):
         return _err("Lesson.example is required and must be a string")
 
-    #Optional
+    # Optional
     if "summary" in data and not isinstance(data["summary"], str):
         return _err("Lesson.summary must be a string")
 
@@ -43,8 +42,11 @@ def validate_task(data: Dict[str, Any]) -> Tuple[bool, str | None]:
     # Required
     if "title" not in data or not isinstance(data["title"], str) or not data["title"].strip():
         return _err("Task.title is required and must be a non-empty string")
-    if "statement" not in data and not isinstance(data["statement"], str):
+
+    # Fixed: use OR so missing OR non-string statement fails
+    if "statement" not in data or not isinstance(data["statement"], str):
         return _err("Task.statement is required and must be a string")
+
     if "template" not in data or not isinstance(data["template"], str):
         return _err("Task.template is required and must be a string")
     if "check" not in data or not isinstance(data["check"], dict):
@@ -61,11 +63,18 @@ def validate_task(data: Dict[str, Any]) -> Tuple[bool, str | None]:
     else:
         return _err(f"Unsupported check.type: {ctype}")
 
+    # Hints: optional, must be list of non-empty strings; enforce reasonable limits
     if "hints" in data:
         if not isinstance(data["hints"], list):
             return _err("Task.hints must be a list of strings")
+        if len(data["hints"]) > 12:
+            return _err("Task.hints must not contain more than 12 items")
         for i, h in enumerate(data["hints"]):
             if not isinstance(h, str):
                 return _err(f"Task.hints[{i}] must be a string")
+            if not h.strip():
+                return _err(f"Task.hints[{i}] must be a non-empty string")
+            if len(h) > 240:
+                return _err(f"Task.hints[{i}] must be at most 240 characters long")
 
     return True, None

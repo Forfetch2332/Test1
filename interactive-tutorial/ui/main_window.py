@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
@@ -11,8 +11,51 @@ from ui.task_view import TaskView
 import resource_helper as rh
 from content_validator import validate_lesson, validate_task
 
-
 JSONDict = Dict[str, Any]
+
+
+def _normalize_hints(raw) -> List[str]:
+    """Привести raw к списку непустых строк."""
+    if not isinstance(raw, list):
+        return []
+    out: List[str] = []
+    for i, item in enumerate(raw):
+        try:
+            s = "" if item is None else str(item)
+        except Exception:
+            rh.log(f"Hint normalization: could not stringify hint[{i}] -> {item!r}")
+            continue
+        s = s.strip()
+        if s:
+            out.append(s)
+    return out
+
+
+def _extract_hints_from_lesson(data: Dict[str, Any]) -> List[str]:
+    """
+    Извлечь подсказки из lesson-объекта:
+      - сначала смотрим поле "hints" (список строк),
+      - затем поле "notes" (список объектов с ключом "hint").
+    """
+    if not isinstance(data, dict):
+        return []
+
+    raw_hints = data.get("hints", [])
+    if isinstance(raw_hints, list) and any(isinstance(x, str) for x in raw_hints):
+        return _normalize_hints(raw_hints)
+
+    notes = data.get("notes", [])
+    if isinstance(notes, list):
+        extracted: List[str] = []
+        for i, note in enumerate(notes):
+            if not isinstance(note, dict):
+                continue
+            h = note.get("hint")
+            if isinstance(h, str) and h.strip():
+                extracted.append(h.strip())
+        return extracted
+
+    return []
 
 
 class MainWindow(QMainWindow):
@@ -91,7 +134,14 @@ class MainWindow(QMainWindow):
             self.current_task_path = None
             return
 
-        self.lesson_view.load_lesson(data)
+        # Извлекаем подсказки из lesson (hints или notes) и подставляем их в копию данных
+        hints = _extract_hints_from_lesson(data)
+        data_copy = dict(data)
+        data_copy["hints"] = hints  # теперь LessonView увидит подсказки как список строк
+
+        rh.log(f"on_topic_selected: extracted {len(hints)} hints for lesson {rel_lesson}")
+
+        self.lesson_view.load_lesson(data_copy)
         self.current_task_path = topic.get("task")
 
     def open_task(self) -> None:

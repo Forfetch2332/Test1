@@ -1,0 +1,15 @@
+{
+  "title": "Задача: Основы ООП — класс и метод",
+  "statement": "Определи класс Person с конструктором __init__(self, name), который сохраняет имя в атрибуте name, и методом greet(self), который выводит строку Hello, <name>!.\n Создай объект с именем Alice и вызови метод greet().\n Ожидаемый вывод: Hello, Alice!",
+  "template": "class Person:\n    def __init__(self, name):\n        ...\n\n    def greet(self):\n        ...\n\np = Person( ... )\np.greet()",
+  "check": {
+    "type": "stdout_equals",
+    "expected": "Hello, Alice!"
+  },
+  "hints": [
+    "Конструктор в Python называется __init__ и принимает self и остальные параметры.",
+    "Сохраняйте значение в атрибут: self.name = name.",
+    "Метод greet должен обращаться к атрибуту self.name и использовать print для вывода.",
+    "При создании объекта передайте строку \"Alice\" в качестве аргумента."
+  ]
+}

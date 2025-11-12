@@ -1,0 +1,16 @@
+{
+  "title": "Задача: JSON/CSV/XML — чтение и парсинг",
+  "statement": "Даны строковые представления данных в формате JSON, CSV и XML. Распарсьте каждую строку и выведите на отдельных строках: имя из JSON, возраст из CSV и город из XML. Используйте встроенные модули json, csv и xml.etree.ElementTree. Ожидаемый вывод:\nAlice\n30\nLondon",
+  "template": "import json\nimport csv\nimport xml.etree.ElementTree as ET\n\njson_str = '{\"name\": \"Alice\"}'\ncsv_str = 'name,age\\nAlice,30'\nxml_str = '<person><city>London</city></person>'\n\n# parse JSON\ndata = json.loads( ... )\nprint( ... )\n\n# parse CSV\nreader = csv.reader( ... )\nrow = next( ... )\nprint( ... )\n\n# parse XML\nroot = ET.fromstring( ... )\nprint( ... )",
+  "check": {
+    "type": "stdout_equals",
+    "expected": "Alice\n30\nLondon"
+  },
+  "hints": [
+    "json.loads(string) преобразует JSON-строку в словарь или список.",
+    "csv.reader ожидает итерируемый объект строк; используйте str.splitlines() для одной CSV-строки.",
+    "csv.reader возвращает итератор строк, каждая строка — список полей; возраст может быть во втором поле.",
+    "ET.fromstring(xml_string) парсит XML из строки; метод find('tag') возвращает элемент, у которого есть .text.",
+    "print выводит каждое значение на новой строке в указанном порядке: JSON, CSV, XML."
+  ]
+}

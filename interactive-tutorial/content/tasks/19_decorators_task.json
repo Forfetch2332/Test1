@@ -1,0 +1,15 @@
+{
+  "title": "Задача: Декораторы — простой логгер",
+  "statement": "Реализуй декоратор announce, который перед вызовом декорируемой функции выводит строку Before, затем вызывает функцию, а после её выполнения выводит строку After. Примените декоратор к функции greet, которая выводит Hello, и вызовите greet(). Ожидаемый вывод:\nBefore\nHello\nAfter",
+  "template": "def announce(func):\n    def wrapper(*args, **kwargs):\n        ...\n        result = func(*args, **kwargs)\n        ...\n        return result\n    return wrapper\n\n@announce\ndef greet():\n    print(\"Hello\")\n\ngreet()",
+  "check": {
+    "type": "stdout_equals",
+    "expected": "Before\nHello\nAfter"
+  },
+  "hints": [
+    "Декоратор — это функция, принимающая функцию и возвращающая новую функцию.",
+    "Используйте print(\"Before\") перед вызовом func и print(\"After\") после.",
+    "Обёртка должна принимать произвольные позиционные и именованные аргументы: *args, **kwargs.",
+    "Не забудьте вернуть результат вызова декорируемой функции."
+  ]
+}
